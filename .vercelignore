@@ -1,0 +1,14 @@
+/node_modules
+/.next
+/.git
+/.vercel
+/.env.local
+/.env*.local
+/tsconfig.tsbuildinfo
+/tests
+/supabase
+/scripts
+/docs
+/businesshub
+/Businesstop
+/start-app.cmd
