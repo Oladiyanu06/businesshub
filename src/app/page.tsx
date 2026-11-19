@@ -55,14 +55,14 @@ export default function LandingPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
 
-      <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-5">
+      <header className="mx-auto flex w-full max-w-6xl items-center justify-between gap-2 px-4 py-4 sm:px-6 sm:py-5">
         <div className="flex items-center gap-2.5">
           <BrandMark />
           <span className="text-sm font-semibold tracking-[0.18em] text-slate-900">
             BUSINESSHUB
           </span>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <Link
             href={WHATSAPP_URL}
             target="_blank"
@@ -72,7 +72,10 @@ export default function LandingPage() {
             <MessageCircle className="h-3.5 w-3.5" aria-hidden />
             Request a pilot
           </Link>
-          <Link href="/login" className="text-sm font-medium text-slate-600 hover:text-slate-900">
+          <Link
+            href="/login"
+            className="hidden text-sm font-medium text-slate-600 hover:text-slate-900 sm:inline"
+          >
             Sign in
           </Link>
         </div>
