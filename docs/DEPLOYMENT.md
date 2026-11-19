@@ -80,7 +80,9 @@ isolation. Delete the test business afterwards.
 - Environment values are stored encrypted by Vercel; `vercel.cmd env ls` shows names only.
 - Rollback: promote an earlier deployment from the Vercel dashboard
   (Deployments -> ... -> Promote to Production).
-- There is no Git remote connected, so deploys happen from this machine with the CLI.
+- The project is connected to GitHub (`Oladiyanu06/businesshub`): every push to
+  `main` deploys to production automatically. Manual `vercel deploy` still works
+  for testing uncommitted changes.
 
 ## Custom domain
 
