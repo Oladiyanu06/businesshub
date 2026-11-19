@@ -1,5 +1,11 @@
+import type { Metadata } from "next";
+
 import { AppShell, type NavSection } from "@/components/app-shell";
 import { requirePlatformAdmin } from "@/lib/auth/session";
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 export default async function PlatformLayout({ children }: { children: React.ReactNode }) {
   const session = await requirePlatformAdmin();

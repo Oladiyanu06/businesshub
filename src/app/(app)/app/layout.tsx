@@ -1,9 +1,14 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import { AppShell, type NavSection } from "@/components/app-shell";
 import { can } from "@/lib/permissions";
 import { requireBusiness } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 export default async function WorkspaceLayout({ children }: { children: React.ReactNode }) {
   const session = await requireBusiness();

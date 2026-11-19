@@ -2,6 +2,13 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 
 import { ServiceWorkerRegistrar } from "@/components/service-worker-registrar";
+import {
+  SITE_DESCRIPTION,
+  SITE_KEYWORDS,
+  SITE_NAME,
+  SITE_TITLE,
+  SITE_URL,
+} from "@/lib/site";
 import "./globals.css";
 
 const inter = Inter({
@@ -11,17 +18,45 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: {
-    default: "BUSINESSHUB — Multi-branch business operations",
-    template: "%s · BUSINESSHUB",
+    default: SITE_TITLE,
+    template: `%s · ${SITE_NAME}`,
   },
-  description:
-    "Offline-first, multi-tenant business management for sales, inventory, branches, people and financial records.",
-  applicationName: "BUSINESSHUB",
+  description: SITE_DESCRIPTION,
+  keywords: SITE_KEYWORDS,
+  applicationName: SITE_NAME,
   manifest: "/manifest.webmanifest",
+  alternates: { canonical: "/" },
+  authors: [{ name: "Oladiyanu06", url: "https://github.com/Oladiyanu06" }],
+  creator: "Oladiyanu06",
+  category: "business",
+  openGraph: {
+    type: "website",
+    url: SITE_URL,
+    siteName: SITE_NAME,
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    locale: "en_NG",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
   appleWebApp: {
     capable: true,
-    title: "BUSINESSHUB",
+    title: SITE_NAME,
     statusBarStyle: "black-translucent",
   },
 };
