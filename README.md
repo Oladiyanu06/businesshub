@@ -159,7 +159,8 @@ npm run build      # production build
 ```
 
 Deployment steps, environment variables and the Vercel smoke test are in
-[`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
+[`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md). The project is linked to Vercel, so
+every push to `main` deploys to production automatically.
 
 ## Project structure
 
