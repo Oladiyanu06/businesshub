@@ -259,7 +259,7 @@ export async function resetAdministratorPassword(
     );
   }
 
-  await supabase.rpc("log_platform_action", {
+  const { error: auditError } = await supabase.rpc("log_platform_action", {
     p_action: "platform.administrator_password_reset",
     p_entity_type: "employee",
     p_entity_id: parsed.data.employeeId,
@@ -268,6 +268,13 @@ export async function resetAdministratorPassword(
       email: employee.email,
     },
   });
+
+  if (auditError) {
+    console.error(
+      "administrator password reset: platform audit entry failed",
+      auditError.message,
+    );
+  }
 
   return { password: tempPassword, email: employee.email };
 }
