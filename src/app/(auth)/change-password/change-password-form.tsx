@@ -7,7 +7,13 @@ import { Alert } from "@/components/ui/alert";
 import { Field, Input } from "@/components/ui/field";
 import { SubmitButton } from "@/components/ui/submit-button";
 
-export function ChangePasswordForm({ forced }: { forced: boolean }) {
+export function ChangePasswordForm({
+  forced,
+  recovery,
+}: {
+  forced: boolean;
+  recovery: boolean;
+}) {
   const [state, formAction] = useActionState<PasswordState, FormData>(
     changePassword,
     undefined,
@@ -17,16 +23,18 @@ export function ChangePasswordForm({ forced }: { forced: boolean }) {
     <form action={formAction} className="space-y-4">
       {state?.error ? <Alert variant="error">{state.error}</Alert> : null}
 
-      <Field label="Current password" htmlFor="currentPassword" required>
-        <Input
-          id="currentPassword"
-          name="currentPassword"
-          type="password"
-          autoComplete="current-password"
-          required
-          autoFocus
-        />
-      </Field>
+      {recovery ? null : (
+        <Field label="Current password" htmlFor="currentPassword" required>
+          <Input
+            id="currentPassword"
+            name="currentPassword"
+            type="password"
+            autoComplete="current-password"
+            required
+            autoFocus
+          />
+        </Field>
+      )}
 
       <Field
         label="New password"
@@ -56,7 +64,7 @@ export function ChangePasswordForm({ forced }: { forced: boolean }) {
       </Field>
 
       <SubmitButton className="w-full" pendingLabel="Updating password…">
-        {forced ? "Set password and continue" : "Update password"}
+        {forced || recovery ? "Set password and continue" : "Update password"}
       </SubmitButton>
     </form>
   );

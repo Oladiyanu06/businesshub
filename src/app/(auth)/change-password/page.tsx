@@ -3,15 +3,21 @@ import { redirect } from "next/navigation";
 import { ShieldCheck } from "lucide-react";
 
 import { requireSession } from "@/lib/auth/session";
+import { hasRecoveryCookie } from "@/lib/auth/recovery-cookie";
 import { ChangePasswordForm } from "./change-password-form";
 
-export const metadata: Metadata = { title: "Change password" };
+export const metadata: Metadata = {
+  title: "Change password",
+  robots: { index: false, follow: false },
+};
 
 export default async function ChangePasswordPage() {
   const session = await requireSession({ allowPasswordChange: true });
   if (!session.employee && !session.isPlatformAdmin) redirect("/no-access");
 
   const forced = session.employee?.mustChangePassword ?? false;
+  const recovery = await hasRecoveryCookie(session.userId);
+  const setting = forced || recovery;
 
   return (
     <main className="grid min-h-screen place-items-center bg-slate-50 px-5 py-12">
@@ -27,16 +33,18 @@ export default async function ChangePasswordPage() {
 
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
           <h1 className="text-xl font-semibold tracking-tight text-slate-900">
-            {forced ? "Set a new password" : "Change your password"}
+            {setting ? "Set a new password" : "Change your password"}
           </h1>
           <p className="mt-1.5 text-sm text-slate-500">
-            {forced
-              ? "Your account was provisioned with a temporary password. Replace it before continuing."
-              : "Choose a strong password that you do not use elsewhere."}
+            {recovery
+              ? "You opened a secure reset link. Choose a new password to finish signing in."
+              : forced
+                ? "Your account was provisioned with a temporary password. Replace it before continuing."
+                : "Choose a strong password that you do not use elsewhere."}
           </p>
 
           <div className="mt-6">
-            <ChangePasswordForm forced={forced} />
+            <ChangePasswordForm forced={forced} recovery={recovery} />
           </div>
         </div>
 

@@ -7,6 +7,8 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { loadSessionContext } from "@/lib/auth/session";
 import { safeNextPath } from "@/lib/auth/redirect";
+import { clearRecoveryCookie, hasRecoveryCookie } from "@/lib/auth/recovery-cookie";
+import { SITE_URL } from "@/lib/site";
 
 export type AuthState = { error?: string } | undefined;
 
@@ -86,7 +88,7 @@ export async function signOut() {
 
 const passwordSchema = z
   .object({
-    currentPassword: z.string().min(1, "Enter your current password."),
+    currentPassword: z.string().optional().default(""),
     password: z
       .string()
       .min(12, "Use at least 12 characters.")
@@ -122,14 +124,25 @@ export async function changePassword(
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user?.email) return { error: "Your session has expired. Sign in again." };
+  if (!user) return { error: "Your session has expired. Sign in again." };
 
-  const { error: reauthError } = await supabase.auth.signInWithPassword({
-    email: user.email,
-    password: parsed.data.currentPassword,
-  });
+  // A recovery link already proved control of the email address, so the old
+  // password is unknown by definition. Every other route still requires it.
+  const recovering = await hasRecoveryCookie(user.id);
 
-  if (reauthError) return { error: "Your current password is incorrect." };
+  if (!recovering) {
+    if (!user.email) return { error: "Your session has expired. Sign in again." };
+    if (parsed.data.currentPassword.length === 0) {
+      return { error: "Enter your current password." };
+    }
+
+    const { error: reauthError } = await supabase.auth.signInWithPassword({
+      email: user.email,
+      password: parsed.data.currentPassword,
+    });
+
+    if (reauthError) return { error: "Your current password is incorrect." };
+  }
 
   const { error } = await supabase.auth.updateUser({ password: parsed.data.password });
   if (error) return { error: error.message };
@@ -139,5 +152,41 @@ export async function changePassword(
     console.error("mark_password_changed failed", flagError.message);
   }
 
+  if (recovering) await clearRecoveryCookie();
+
   redirect("/app");
+}
+
+export type ResetRequestState = { error?: string; sent?: boolean } | undefined;
+
+const resetRequestSchema = z.object({
+  email: z.email("Enter a valid email address.").trim().toLowerCase(),
+});
+
+/**
+ * Always reports success, whether or not the address exists, so the form
+ * cannot be used to discover which emails have accounts.
+ */
+export async function requestPasswordReset(
+  _state: ResetRequestState,
+  formData: FormData,
+): Promise<ResetRequestState> {
+  const parsed = resetRequestSchema.safeParse({ email: formData.get("email") });
+
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Enter a valid email address." };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.resetPasswordForEmail(parsed.data.email, {
+    redirectTo: `${SITE_URL}/auth/confirm?type=recovery&next=/change-password`,
+  });
+
+  if (error) {
+    // Do not surface this to the browser: it would reveal whether the address
+    // exists or that the mail provider is rate-limiting.
+    console.error("requestPasswordReset failed", error.message);
+  }
+
+  return { sent: true };
 }

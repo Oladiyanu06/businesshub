@@ -54,17 +54,22 @@ In Supabase Dashboard -> Authentication -> URL Configuration:
 
 - **Site URL**: `https://businesshub-pi.vercel.app`
 - **Redirect URLs**:
-  - `https://businesshub-pi.vercel.app/auth/confirm`
-  - `http://localhost:3000/auth/confirm` (local development)
+  - `https://businesshub-pi.vercel.app/**`
+  - `http://localhost:3000/**` (local development)
 
 Password sign-in works without this, but email confirmation, invite and recovery
 links are only accepted when the redirect target is allow-listed.
+
+Password recovery (staff, self-service and platform fallback) is documented in
+[PASSWORD-RECOVERY.md](./PASSWORD-RECOVERY.md), including the email template and
+SMTP requirements.
 
 ## Post-deploy smoke test
 
 ```powershell
 $base = 'https://businesshub-pi.vercel.app'
 curl.exe -s -o NUL -w "%{http_code}`n" "$base/login"          # 200
+curl.exe -s -o NUL -w "%{http_code}`n" "$base/forgot-password" # 200
 curl.exe -s -o NUL -w "%{http_code}`n" "$base/app"            # 307 -> /login?next=%2Fapp
 curl.exe -s -o NUL -w "%{http_code}`n" "$base/manifest.webmanifest" # 200
 curl.exe -s -o NUL -w "%{http_code}`n" "$base/sw.js"          # 200, Service-Worker-Allowed: /

@@ -180,6 +180,98 @@ export async function updateBusinessStatus(formData: FormData) {
   redirect(`/platform/businesses/${parsed.data.businessId}?notice=status`);
 }
 
+export type AdministratorResetState =
+  | { error?: string; password?: string; email?: string }
+  | undefined;
+
+const administratorResetSchema = z.object({
+  businessId: z.uuid(),
+  employeeId: z.uuid(),
+});
+
+/**
+ * Account administration, not tenant data access: verifies that the employee
+ * is one of this business's administrators, then sets a one-time password.
+ * The employee must replace it at their next sign-in.
+ */
+export async function resetAdministratorPassword(
+  _state: AdministratorResetState,
+  formData: FormData,
+): Promise<AdministratorResetState> {
+  await requirePlatformAdmin();
+
+  const parsed = administratorResetSchema.safeParse({
+    businessId: formData.get("businessId"),
+    employeeId: formData.get("employeeId"),
+  });
+
+  if (!parsed.success) return { error: "Invalid request." };
+
+  const supabase = await createClient();
+  const { data: detail, error: detailError } = await supabase.rpc(
+    "platform_business_detail",
+    { p_business_id: parsed.data.businessId },
+  );
+
+  if (detailError || !detail) return { error: "Business not found." };
+
+  const administrators =
+    (detail as { administrators?: Array<{ employee_id: string }> }).administrators ?? [];
+
+  if (!administrators.some((row) => row.employee_id === parsed.data.employeeId)) {
+    return { error: "That employee is not an administrator of this business." };
+  }
+
+  const admin = createAdminClient();
+  const { data: employee, error: employeeError } = await admin
+    .from("employees")
+    .select("id, user_id, email")
+    .eq("id", parsed.data.employeeId)
+    .eq("business_id", parsed.data.businessId)
+    .maybeSingle();
+
+  if (employeeError || !employee?.user_id) {
+    return { error: "The administrator account could not be found." };
+  }
+
+  const tempPassword = generateTemporaryPassword();
+
+  const { error: authError } = await admin.auth.admin.updateUserById(employee.user_id, {
+    password: tempPassword,
+  });
+
+  if (authError) {
+    return { error: "The password could not be reset. No change was made." };
+  }
+
+  const { error: flagError } = await admin
+    .from("employees")
+    .update({ must_change_password: true })
+    .eq("id", employee.id)
+    .eq("business_id", parsed.data.businessId);
+
+  if (flagError) {
+    // The auth password is already changed; do not hide the new password from
+    // the operator. Record the incomplete step for follow-up.
+    console.error(
+      "administrator password reset: must_change_password update failed",
+      flagError.message,
+    );
+  }
+
+  await supabase.rpc("log_platform_action", {
+    p_action: "platform.administrator_password_reset",
+    p_entity_type: "employee",
+    p_entity_id: parsed.data.employeeId,
+    p_metadata: {
+      business_id: parsed.data.businessId,
+      email: employee.email,
+    },
+  });
+
+  return { password: tempPassword, email: employee.email };
+}
+
 export type LicensingState = { error?: string; success?: string } | undefined;
 
 const licensingSchema = z.object({

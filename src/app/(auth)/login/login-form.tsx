@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import Link from "next/link";
 
 import { signIn, type AuthState } from "@/app/actions/auth";
 import { Alert } from "@/components/ui/alert";
@@ -43,8 +44,16 @@ export function LoginForm({ next }: { next?: string }) {
         Sign in
       </SubmitButton>
 
-      <p className="text-center text-xs text-slate-500">
-        Forgotten your password? Ask your business administrator to reset it.
+      <p className="text-center text-xs leading-relaxed text-slate-500">
+        <Link
+          href="/forgot-password"
+          className="font-medium text-brand-700 hover:underline"
+        >
+          Forgot your password?
+        </Link>
+        <span className="mt-1 block">
+          Staff can also ask their business administrator to reset it.
+        </span>
       </p>
     </form>
   );

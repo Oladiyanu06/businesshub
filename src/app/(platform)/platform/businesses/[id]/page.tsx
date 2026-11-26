@@ -20,6 +20,7 @@ import { SubmitButton } from "@/components/ui/submit-button";
 import { requirePlatformAdmin } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { formatDate, formatDateTime } from "@/lib/utils";
+import { AdministratorResetRow } from "./administrator-reset-row";
 import { LicensingForm } from "./licensing-form";
 
 type BusinessDetail = {
@@ -172,34 +173,30 @@ export default async function BusinessDetailPage({
             />
             <CardBody className="p-0">
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[540px] text-left text-sm">
+                <table className="w-full min-w-[680px] text-left text-sm">
                   <thead className="border-b border-slate-100 bg-slate-50/60 text-[11px] uppercase tracking-wide text-slate-500">
                     <tr>
                       <th className="px-5 py-2.5 font-semibold">Name</th>
                       <th className="px-5 py-2.5 font-semibold">Email</th>
                       <th className="px-5 py-2.5 font-semibold">Phone</th>
                       <th className="px-5 py-2.5 font-semibold">Status</th>
+                      <th className="px-5 py-2.5 text-right font-semibold">Access</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {business.administrators.length === 0 ? (
                       <tr>
-                        <td colSpan={4} className="px-5 py-8 text-center text-slate-500">
+                        <td colSpan={5} className="px-5 py-8 text-center text-slate-500">
                           No administrator is currently assigned.
                         </td>
                       </tr>
                     ) : (
                       business.administrators.map((admin) => (
-                        <tr key={admin.employee_id}>
-                          <td className="px-5 py-3 font-medium text-slate-900">
-                            {admin.full_name}
-                          </td>
-                          <td className="px-5 py-3 text-slate-600">{admin.email}</td>
-                          <td className="px-5 py-3 text-slate-600">{admin.phone ?? "—"}</td>
-                          <td className="px-5 py-3">
-                            <StatusBadge status={admin.status} />
-                          </td>
-                        </tr>
+                        <AdministratorResetRow
+                          key={admin.employee_id}
+                          businessId={business.id}
+                          administrator={admin}
+                        />
                       ))
                     )}
                   </tbody>
