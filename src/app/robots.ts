@@ -14,6 +14,7 @@ export default function robots(): MetadataRoute.Robots {
           "/platform",
           "/platform/",
           "/login",
+          "/forgot-password",
           "/change-password",
           "/auth/",
           "/no-access",
